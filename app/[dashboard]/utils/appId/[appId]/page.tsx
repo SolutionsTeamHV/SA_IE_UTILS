@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Card, CardContent } from "@/components/ui/card";
 
 type WorkflowFile = {
   name: string;
@@ -12,7 +14,6 @@ export default async function AppPage({
   params: { appId: string };
 }) {
   const { appId } = await params;
-
   if (!appId) return notFound();
 
   let files: WorkflowFile[] = [];
@@ -23,11 +24,9 @@ export default async function AppPage({
       `${process.env.NEXT_PUBLIC_BASE_URL}/api/workflows?appId=${appId}`,
       { cache: "no-store" }
     );
-
     if (!res.ok) {
       throw new Error(`GitHub returned ${res.status}`);
     }
-
     files = await res.json();
   } catch (err: any) {
     error = err.message || "Something went wrong while fetching workflows.";
@@ -36,9 +35,9 @@ export default async function AppPage({
   const jsonFiles = files.filter((f) => f.name.endsWith(".json"));
 
   return (
-    <main className="max-w-3xl mx-auto py-10 px-4">
-      <h1 className="text-2xl font-semibold mb-4">
-        Workflows for <code>{appId}</code>
+    <main className="max-w-5xl mx-auto py-10 px-6">
+      <h1 className="text-2xl font-bold mb-6 text-white">
+        Workflows available in <span className="text-yellow-400">{appId}</span>
       </h1>
 
       {error ? (
@@ -47,28 +46,28 @@ export default async function AppPage({
           <span className="block sm:inline">{error}</span>
         </div>
       ) : jsonFiles.length === 0 ? (
-        <p>No workflow files found.</p>
+        <p className="text-muted-foreground">No workflow files found.</p>
       ) : (
-        <ul className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {jsonFiles.map((file) => (
-            <li
+            <Link
               key={file.name}
-              className="border rounded p-4 hover:bg-gray-100 transition"
+              href={`/dashboard/utils/appId/${appId}/${file.name}`}
+              className="group"
             >
-              <div className="flex justify-between items-center">
-                <span className="font-medium">{file.name}</span>
-                <a
-                  href={file.download_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline text-sm"
-                >
-                  View Raw
-                </a>
-              </div>
-            </li>
+              <Card className="transition border border-muted hover:border-blue-400 shadow-sm group-hover:shadow-md">
+                <CardContent className="p-4 space-y-2">
+                  <div className="truncate font-mono text-sm text-white group-hover:text-blue-400">
+                    {file.name}
+                  </div>
+                  <div className="text-xs text-blue-500 group-hover:underline">
+                    View Details →
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
-        </ul>
+        </div>
       )}
     </main>
   );

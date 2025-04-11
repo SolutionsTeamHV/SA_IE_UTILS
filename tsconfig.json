@@ -22,6 +22,12 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "lib/validation/schemas/moduleSchema.js"
+, "lib/validation/schemas/workflowSchema.js", "lib/validation/schemas/componentSchema.js"  ],
   "exclude": ["node_modules"]
 }
