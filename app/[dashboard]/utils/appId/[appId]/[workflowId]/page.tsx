@@ -18,6 +18,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default async function WorkflowPage({
   params,
@@ -89,12 +95,12 @@ export default async function WorkflowPage({
   return (
     <main className="max-w-5xl mx-auto py-10 px-4 space-y-6">
       <h1 className="text-2xl font-bold">
-        Deep insights for <span className="text-yellow-400">{workflowId}</span>
+        Deep insights for <span className="text-primary">{workflowId}</span>
       </h1>
 
       <div className="grid grid-cols-1">
         <div className="space-y-4">
-          <Card className="bg-background border mt-4">
+          <Card className="mt-4">
             <CardHeader>
               <CardTitle className="text-muted-foreground">
                 Validation Status
@@ -105,7 +111,7 @@ export default async function WorkflowPage({
               {result.success ? (
                 <Badge
                   variant="default"
-                  className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5"
+                  className="bg-green-600 hover:bg-green-700 text-white"
                 >
                   ✅ Passed
                 </Badge>
@@ -113,13 +119,13 @@ export default async function WorkflowPage({
                 <>
                   <Badge
                     variant="outline"
-                    className="bg-red-500/10 border-red-500 text-red-400 flex items-center gap-1 px-3 py-1.5 text-sm"
+                    className="border-destructive text-destructive px-3 py-1.5 text-sm"
                   >
                     ❌ Errors: {errorCount}
                   </Badge>
                   <Badge
                     variant="outline"
-                    className="bg-yellow-500/10 border-yellow-500 text-yellow-400 flex items-center gap-1 px-3 py-1.5 text-sm"
+                    className="border-yellow-500 text-yellow-500 px-3 py-1.5 text-sm"
                   >
                     ⚠️ Warnings: {warningCount}
                   </Badge>
@@ -132,38 +138,38 @@ export default async function WorkflowPage({
         {!result.success && (
           <Dialog>
             <DialogTrigger asChild>
-              <button className="text-sm text-blue-400 underline hover:text-blue-300 cursor-pointer transition mt-4">
+              <button className="text-sm text-primary underline hover:opacity-80 transition mt-4">
                 View Validation Details
               </button>
             </DialogTrigger>
 
-            {/* Custom Overlay with Blur */}
+            {/* Overlay with blur */}
             <DialogOverlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
 
-            <DialogContent className="max-w-6xl bg-zinc-900 border border-zinc-700 z-50">
+            <DialogContent className="max-w-6xl z-50">
               <DialogHeader>
-                <DialogTitle className="text-white">
+                <DialogTitle className="text-foreground">
                   Validation Issues
                 </DialogTitle>
-                <DialogDescription className="text-sm text-zinc-400">
+                <DialogDescription className="text-sm text-muted-foreground">
                   These issues were detected during validation.
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="mt-4 max-h-[400px] overflow-y-auto">
+              <div className="mt-4 max-h-[400px] overflow-y-auto pr-1">
                 <ul className="space-y-4 text-sm">
                   {issues.map((issue: any, idx: number) => (
                     <li key={idx} className="flex items-start gap-2">
                       <span
                         className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-md ${
                           issue.type === "ERROR"
-                            ? "bg-red-500/10 text-red-500 border border-red-400"
-                            : "bg-yellow-500/10 text-yellow-500 border border-yellow-400"
+                            ? "text-destructive border border-destructive bg-destructive/10"
+                            : "text-yellow-600 border border-yellow-500 bg-yellow-500/10"
                         }`}
                       >
                         {issue.type?.toUpperCase() ?? "ISSUE"}
                       </span>
-                      <div className="text-white leading-snug">
+                      <div className="text-foreground leading-snug">
                         <span className="font-semibold">
                           {issue.code ?? "Issue"}:
                         </span>{" "}
@@ -217,24 +223,42 @@ export default async function WorkflowPage({
       {/* SDK Responses */}
       <div className="grid grid-cols-1">
         <Card>
-          <CardHeader>
-            <CardTitle>SDK Responses</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SDKResponseList responses={sdkResponses} />
-          </CardContent>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="sdk-responses">
+              <AccordionTrigger className="flex items-center justify-between w-full p-2 cursor-pointer">
+                <div className="flex-1">
+                  <CardHeader className="p-2">
+                    <CardTitle className="text-left">SDK Responses</CardTitle>
+                  </CardHeader>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <CardContent>
+                  <SDKResponseList responses={sdkResponses} />
+                </CardContent>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </Card>
       </div>
 
       {/* URLs Used */}
       <div className="grid grid-cols-1">
         <Card>
-          <CardHeader>
-            <CardTitle>URLs Used</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <URLList urls={urls} />
-          </CardContent>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="urls-used">
+              <AccordionTrigger className="flex items-center justify-between w-full p-2 cursor-pointer">
+                <CardHeader className="p-0 flex-1">
+                  <CardTitle className="text-left">URLs Used</CardTitle>
+                </CardHeader>
+              </AccordionTrigger>
+              <AccordionContent>
+                <CardContent>
+                  <URLList urls={urls} />
+                </CardContent>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </Card>
       </div>
     </main>

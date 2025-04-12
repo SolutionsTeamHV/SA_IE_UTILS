@@ -36,12 +36,13 @@ export default async function AppPage({
 
   return (
     <main className="max-w-5xl mx-auto py-10 px-6">
-      <h1 className="text-2xl font-bold mb-6 text-white">
-        Workflows available in <span className="text-yellow-400">{appId}</span>
+      <h1 className="text-2xl font-bold mb-6 text-foreground">
+        Workflows available in{" "}
+        <span className="text-primary font-mono">{appId}</span>
       </h1>
 
       {error ? (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded">
           <strong className="font-bold">Error:</strong>{" "}
           <span className="block sm:inline">{error}</span>
         </div>
@@ -55,12 +56,12 @@ export default async function AppPage({
               href={`/dashboard/utils/appId/${appId}/${file.name}`}
               className="group"
             >
-              <Card className="transition border border-muted hover:border-blue-400 shadow-sm group-hover:shadow-md">
+              <Card className="transition border border-muted hover:border-primary shadow-sm group-hover:shadow-md">
                 <CardContent className="p-4 space-y-2">
-                  <div className="truncate font-mono text-sm text-white group-hover:text-blue-400">
+                  <div className="truncate font-mono text-sm text-foreground group-hover:text-primary">
                     {file.name}
                   </div>
-                  <div className="text-xs text-blue-500 group-hover:underline">
+                  <div className="text-xs text-muted-foreground group-hover:text-primary group-hover:underline">
                     View Details →
                   </div>
                 </CardContent>

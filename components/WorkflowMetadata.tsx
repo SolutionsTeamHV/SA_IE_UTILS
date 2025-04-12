@@ -51,14 +51,17 @@ export function NameDescription({
   description: string;
 }) {
   return (
-    <div className="border rounded-lg bg-muted/20 p-4 space-y-4 text-sm">
-      <div className="space-x-1">
-        <span className="font-medium text-foreground">Name:</span>
-        <span className="text-muted-foreground">{name}</span>
+    <div className="rounded-lg border bg-muted p-4 space-y-2 text-sm">
+      <div className="flex flex-col">
+        <span className="text-xs font-medium text-muted-foreground">Name</span>
+        <span className="text-foreground font-mono truncate">{name}</span>
       </div>
-      <div className="space-x-1">
-        <span className="font-medium text-foreground">Description:</span>
-        <span className="text-muted-foreground">{description}</span>
+
+      <div className="flex flex-col">
+        <span className="text-xs font-medium text-muted-foreground">
+          Description
+        </span>
+        <span className="text-foreground">{description}</span>
       </div>
     </div>
   );
@@ -81,13 +84,17 @@ export function BuilderAndCountries({
           {isBuiltOnBuilder ? "Yes" : "No"}
         </Badge>
       </div>
+
       <div className="flex items-start gap-2 flex-wrap">
         <span className="font-medium text-foreground">
           Countries Supported:
         </span>
         <div className="flex gap-2 flex-wrap">
           {countries.map((country) => (
-            <Badge key={country} className="bg-muted text-foreground">
+            <Badge
+              key={country}
+              className="bg-muted text-muted-foreground border border-border"
+            >
               {country}
             </Badge>
           ))}
@@ -107,7 +114,7 @@ export function ModuleList({ modules }: { modules: string[] }) {
           <Badge
             key={mod}
             variant="secondary"
-            className="text-xs rounded-md px-2 py-1"
+            className="text-xs rounded-md px-2 py-1 bg-muted text-muted-foreground border border-border"
           >
             {mod}
           </Badge>
@@ -120,13 +127,13 @@ export function ModuleList({ modules }: { modules: string[] }) {
 // components/workflow-metadata/SDKResponseList.tsx
 export function SDKResponseList({ responses }: { responses: string[] }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg">
+    <div className="bg-background border border-border rounded-lg">
       <div className="max-h-60 overflow-auto px-4 py-2">
         <ul className="space-y-2">
           {responses.map((response, idx) => (
             <li
               key={idx}
-              className="bg-zinc-800 text-zinc-100 text-sm font-mono px-3 py-2 rounded-md border border-zinc-700 shadow-sm"
+              className="bg-muted text-muted-foreground text-sm font-mono px-3 py-2 rounded-md border border-border shadow-sm"
             >
               {response}
             </li>
@@ -144,32 +151,37 @@ export function URLList({ urls }: { urls: WorkflowUrl[] }) {
         {urls.map((u, idx) => (
           <li
             key={idx}
-            className="text-sm flex items-center justify-between border rounded px-3 py-2 bg-zinc-800"
+            className="text-sm flex items-center justify-between border border-border rounded px-3 py-2 bg-muted"
           >
-            <span className="bg-zinc-800 text-blue-400 font-mono text-sm px-2 py-1 rounded whitespace-nowrap">
+            <span className="text-blue-600 dark:text-blue-400 font-mono text-sm px-2 py-1 rounded whitespace-nowrap">
               {u.url}
             </span>
+
             {u.env === "dev" && (
-                <Tooltip>
+              <Tooltip>
                 <TooltipTrigger asChild>
-                  <span className="text-xs text-yellow-400 italic cursor-pointer">
-                  ⚠️ Warning: Dev URL
+                  <span className="text-xs text-yellow-600 dark:text-yellow-400 italic cursor-pointer">
+                    ⚠️ Warning: Dev URL
                   </span>
                 </TooltipTrigger>
-                <TooltipContent className="bg-blue-100 text-blue-800">
+                <TooltipContent className="bg-muted text-muted-foreground border border-border rounded shadow-md p-2">
                   Dev URL should not be used inside a workflow. This can cause
-                  unexpected cases like transaction status not being updated
-                  (status_unavailable).
+                  unexpected cases like transaction status not being updated (
+                  <span className="font-mono text-red-600 dark:text-red-400">
+                    status_unavailable
+                  </span>
+                  ).
                 </TooltipContent>
-                </Tooltip>
+              </Tooltip>
             )}
+
             <Badge
               className={
                 u.env === "prod"
                   ? "bg-green-600 text-white hover:bg-green-700"
                   : u.env === "dev"
                   ? "bg-red-600 text-white hover:bg-red-700"
-                  : "border border-yellow-500 bg-yellow-500/10 text-yellow-400"
+                  : "border border-yellow-500 bg-yellow-500/10 text-yellow-500 dark:text-yellow-400"
               }
             >
               {u.env}

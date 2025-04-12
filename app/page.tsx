@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +7,7 @@ import {
   FileText,
   TerminalSquare,
 } from "lucide-react";
+import Link from "next/link";
 
 const features = [
   {
@@ -62,13 +61,11 @@ export default function AppLandingPage() {
             VKYC/GKYC summaries, and production audit checks — in one place.
           </p>
           <div className="pt-6">
-            <Button
-              size="lg"
-              className="text-white cursor-pointer"
-              onClick={() => (window.location.href = "/dashboard")}
-            >
-              🔍 Start Inspecting
-            </Button>
+            <Link href="/dashboard">
+              <Button size="lg" className="text-white cursor-pointer">
+                🔍 Start Inspecting
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
