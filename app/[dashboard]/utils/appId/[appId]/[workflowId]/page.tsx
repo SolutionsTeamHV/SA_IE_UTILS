@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import WorkflowMetadata, {
+import {
   BuilderAndCountries,
   ModuleList,
   NameDescription,
