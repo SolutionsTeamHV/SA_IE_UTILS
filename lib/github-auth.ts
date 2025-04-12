@@ -1,56 +1,84 @@
-import fs from "fs";
-import path from "path";
-import jwt from "jsonwebtoken";
-import fetch from "node-fetch";
+import { OAuthApp } from "@octokit/oauth-app";
 
-export async function generateGitHubAppJWT() {
-  const privateKeyPath = process.env.PRIVATE_KEY_PATH!;
-  const appId = process.env.GITHUB_APP_ID!;
+const oauthApp = new OAuthApp({
+  clientId: process.env.GITHUB_CLIENT_ID!,
+  clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+  redirectUrl: process.env.GITHUB_REDIRECT_URL!,
+});
 
-  const privateKey = fs.readFileSync(
-    path.join(process.cwd(), privateKeyPath),
-    "utf8"
-  );
-
-  const payload = {
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 10 * 60,
-    iss: appId,
-  };
-
-  return jwt.sign(payload, privateKey, { algorithm: "RS256" });
+export async function getAuthorizationUrl(state?: string) {
+  return oauthApp.getWebFlowAuthorizationUrl({
+    state,
+    scopes: ["repo", "user:email"],
+    redirectUrl: process.env.GITHUB_REDIRECT_URL!
+  });
 }
 
-export async function getInstallationId(jwtToken: string): Promise<number> {
-  const res = await fetch("https://api.github.com/app/installations", {
+export async function getAccessToken(code: string) {
+  const { authentication } = await oauthApp.createToken({
+    code,
+    redirectUrl: process.env.GITHUB_REDIRECT_URL!
+  });
+  return authentication.token;
+}
+
+export async function getUserInfo(accessToken: string) {
+  const userResponse = await fetch("https://api.github.com/user", {
     headers: {
-      Authorization: `Bearer ${jwtToken}`,
+      Authorization: `token ${accessToken}`,
       Accept: "application/vnd.github+json",
     },
   });
 
-  if (!res.ok)
-    throw new Error(`Failed to get installation ID: ${res.statusText}`);
-  const installations = (await res.json()) as { id: number }[];
-  return installations[0].id;
+  console.log("Scopes:", userResponse.headers.get("X-OAuth-Scopes"));
+
+  if (!userResponse.ok) {
+    throw new Error(`Failed to get user info: ${userResponse.statusText}`);
+  }
+
+  const userInfo = await userResponse.json();
+
+  // Get user emails
+  const emailsResponse = await fetch("https://api.github.com/user/emails", {
+    headers: {
+      Authorization: `token ${accessToken}`,
+      Accept: "application/vnd.github+json",
+    },
+  });
+
+  if (!emailsResponse.ok) {
+    console.warn("Failed to get user emails:", emailsResponse.statusText);
+  } else {
+    const emails = await emailsResponse.json();
+    const primaryEmail = emails.find((email: any) => email.primary)?.email;
+    if (primaryEmail) {
+      userInfo.email = primaryEmail;
+    }
+  }
+
+  console.log(userInfo)
+
+  return userInfo;
 }
 
-export async function getInstallationToken(): Promise<string> {
-  const jwtToken = await generateGitHubAppJWT();
-  const installationId = await getInstallationId(jwtToken);
-
-  const res = await fetch(
-    `https://api.github.com/app/installations/${installationId}/access_tokens`,
+export async function getRepoContents(
+  accessToken: string,
+  repo: string,
+  path: string
+) {
+  const response = await fetch(
+    `https://api.github.com/repos/${process.env.GITHUB_REPO_OWNER}/${repo}/contents/${path}`,
     {
-      method: "POST",
       headers: {
-        Authorization: `Bearer ${jwtToken}`,
+        Authorization: `token ${accessToken}`,
         Accept: "application/vnd.github+json",
       },
     }
   );
 
-  if (!res.ok) throw new Error(`Failed to get access token: ${res.statusText}`);
-  const data = (await res.json()) as { token: string };
-  return data.token;
+  if (!response.ok) {
+    throw new Error(`Failed to get repository contents. Do you have the repository permissions?`);
+  }
+
+  return response.json();
 }

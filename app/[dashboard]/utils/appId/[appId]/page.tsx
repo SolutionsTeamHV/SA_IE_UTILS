@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
+import { cookies } from "next/headers";
+import { getRepoContents } from "@/lib/github-auth";
 
 type WorkflowFile = {
   name: string;
@@ -8,28 +10,40 @@ type WorkflowFile = {
   type: string;
 };
 
-export default async function AppPage({
+type PageParams = {
+  [key: string]: string;
+};
+
+export default async function WorkflowPage({
   params,
 }: {
-  params: { appId: string };
+  params: Promise<PageParams>;
 }) {
   const { appId } = await params;
   if (!appId) return notFound();
+
+  const cookieStore = cookies();
+  const accessToken = (await cookieStore).get("accessToken")?.value;
+
+  if (!accessToken) {
+    return notFound(); // or redirect to login
+  }
 
   let files: WorkflowFile[] = [];
   let error = null;
 
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/workflows?appId=${appId}`,
-      { cache: "no-store" }
+    const filePath = `buckets/hv-central-config/audit-portal/prod/workflow-builder/workflows/appIds/${appId}`;
+    files = await getRepoContents(
+      accessToken,
+      process.env.HV_CENTRAL_REPO!,
+      filePath
     );
-    if (!res.ok) {
-      throw new Error(`GitHub returned ${res.status}`);
-    }
-    files = await res.json();
-  } catch (err: any) {
-    error = err.message || "Something went wrong while fetching workflows.";
+  } catch (err: unknown) {
+    error =
+      err instanceof Error
+        ? err.message
+        : "Something went wrong while fetching workflows.";
   }
 
   const jsonFiles = files.filter((f) => f.name.endsWith(".json"));

@@ -2,13 +2,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CheckCircle, AlertTriangle } from "lucide-react";
+import { headers } from "next/headers";
 
-export default function DashboardHomePage() {
+export default async function DashboardHomePage() {
+  const requestHeaders = await headers();
+  const userName = requestHeaders.get("x-user-name") || "Guest";
   return (
     <div className="p-6 md:p-10 space-y-8">
       {/* Header */}
       <div className="space-y-1">
-        <h1 className="text-3xl font-bold">👨‍💻 SA / IE Suite</h1>
+        <h1 className="text-3xl font-bold">👨‍💻 SA / IE Suite - Hello, {userName}!</h1>
         <p className="text-muted-foreground">
           Your one-stop control panel to inspect and validate all appId
           workflows, configs, and APIs.

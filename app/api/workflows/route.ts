@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getInstallationToken } from "@/lib/github-auth";
+import { getRepoContents } from "@/lib/github-auth";
 
 export async function GET(req: NextRequest) {
   const appId = req.nextUrl.searchParams.get("appId");
@@ -7,34 +7,25 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing appId" }, { status: 400 });
 
   try {
-    const accessToken = await getInstallationToken();
+    const accessToken = req.cookies.get("accessToken");
+    if (!accessToken)
+      return NextResponse.json({ error: "Missing accessToken" }, { status: 400 });
+
     console.log("Got installation token");
 
+    // Use the getRepoContents function
     const filePath = `buckets/hv-central-config/audit-portal/prod/workflow-builder/workflows/appIds/${appId}`;
-    const url = `https://api.github.com/repos/${process.env.GITHUB_REPO_OWNER}/${process.env.HV_CENTRAL_REPO}/contents/${filePath}?ref=main`;
+    const files = await getRepoContents(
+      accessToken.value,
+      process.env.HV_CENTRAL_REPO!,
+      filePath
+    );
 
-    const res = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: "application/vnd.github.v3+json",
-      },
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      console.error("GitHub API error:", text);
-      return NextResponse.json(
-        { error: "GitHub fetch failed", details: text },
-        { status: res.status }
-      );
-    }
-
-    const files = await res.json();
     return NextResponse.json(files);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("GitHub API Error:", err);
     return NextResponse.json(
-      { error: "GitHub Auth or Fetch failed", details: err.message },
+      { error: "GitHub Auth or Fetch failed", details: err instanceof Error ? err.message : "Unknown error" },
       { status: 500 }
     );
   }

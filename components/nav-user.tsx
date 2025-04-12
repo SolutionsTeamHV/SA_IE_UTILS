@@ -37,6 +37,13 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar();
 
+  const handleLogout = () => {
+    // Delete cookie
+    document.cookie = "userInfo=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    // Redirect to landing page
+    window.location.replace("/");
+  };
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -98,7 +105,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
               Log out
             </DropdownMenuItem>

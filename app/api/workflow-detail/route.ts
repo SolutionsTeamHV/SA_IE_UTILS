@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   try {
     const result = await validateWorkflowFromUrl(downloadUrl);
     return NextResponse.json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Validation exception:", error);
     return NextResponse.json(
       {

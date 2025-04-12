@@ -1,5 +1,3 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
 import {
   CheckCircle,
   Server,
@@ -61,10 +59,10 @@ export default function AppLandingPage() {
             VKYC/GKYC summaries, and production audit checks — in one place.
           </p>
           <div className="pt-6">
-            <Link href="/dashboard">
-              <Button size="lg" className="text-white cursor-pointer">
-                🔍 Start Inspecting
-              </Button>
+            <Link href="/api/auth/github">
+              <a className="bg-blue-500 text-white px-4 py-2 rounded">
+                Sign in with GitHub
+              </a>
             </Link>
           </div>
         </div>

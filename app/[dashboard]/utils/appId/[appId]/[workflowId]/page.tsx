@@ -24,30 +24,49 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { cookies } from "next/headers";
+import { getRepoContents } from "@/lib/github-auth";
+
+type WorkflowFile = {
+  name: string;
+  download_url: string;
+  type: string;
+};
+
+type PageParams = {
+  [key: string]: string;
+};
 
 export default async function WorkflowPage({
   params,
-}: {
-  params: { appId: string; workflowId: string };
-}) {
+}: { params: Promise<PageParams> }) {
   const { appId, workflowId } = await params;
 
-  // ... (unchanged: fetching and result parsing)
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/workflows?appId=${appId}`,
-    { cache: "no-store" }
-  );
+  const cookieStore = cookies();
+  const accessToken = (await cookieStore).get("accessToken")?.value;
 
-  if (!res.ok) {
+  if (!accessToken) {
+    return notFound(); // or redirect to login
+  }
+
+  let files: WorkflowFile[] = [];
+
+  try {
+    const filePath = `buckets/hv-central-config/audit-portal/prod/workflow-builder/workflows/appIds/${appId}`;
+    files = await getRepoContents(
+      accessToken,
+      process.env.HV_CENTRAL_REPO!,
+      filePath
+    );
+  } catch (err: unknown) {
     return (
       <Alert variant="destructive">
         <AlertTitle>Error loading workflows</AlertTitle>
-        <AlertDescription>AppId: {appId}</AlertDescription>
+        <AlertDescription>WorkflowId: {workflowId} - {err instanceof Error ? err.message : "Unknown error"}</AlertDescription>
       </Alert>
     );
   }
 
-  const files = await res.json();
   const match = files.find((f: any) => f.name === workflowId);
   if (!match) return notFound();
 

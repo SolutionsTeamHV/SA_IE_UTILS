@@ -16,14 +16,18 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { NavMain } from "./nav-main";
+import Link from "next/link";
 
-const data = {
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
+    name: string;
+    email: string;
+    avatar: string;
+  };
+}
+
+export function AppSidebar({ user, ...props }: AppSidebarProps) {
+  const navMain = [
     {
       title: "Utils",
       url: "#",
@@ -31,21 +35,30 @@ const data = {
       isActive: true,
       items: [
         {
-          title: "Workflow Details",
+          title: "Workflow Insights 📊",
           url: "/dashboard/utils/workflow-details",
         },
         {
-          title: "Check Production Ready",
+          title: "Production Checkup 🚀",
           url: "#",
         },
         {
-          title: "Copy workflows to appId",
+          title: "Super Copy 📤",
+          url: "#",
+        },
+        {
+          title: "Magic Summary 🔮",
+          url: "#",
+        },
+        {
+          title: "My PRs 🛠️",
           url: "#",
         },
       ],
     },
-  ],
-  navSecondary: [
+  ];
+
+  const navSecondary = [
     {
       title: "Support",
       url: "#",
@@ -56,43 +69,44 @@ const data = {
       url: "#",
       icon: Send,
     },
-  ],
-  projects: [
+  ];
+
+  const projects = [
     {
       name: "WIP",
       url: "#",
       icon: Frame,
     },
-  ],
-};
+  ];
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="/dashboard">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Command className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Hyperverge</span>
-                  <span className="truncate text-xs">Enterprise</span>
-                </div>
-              </a>
+              <Link href="/dashboard">
+                <a className="flex">
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                    <Command className="size-4" />
+                  </div>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">Hyperverge</span>
+                    <span className="truncate text-xs">Enterprise</span>
+                  </div>
+                </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={navMain} />
+        <NavProjects projects={projects} />
+        <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   );
