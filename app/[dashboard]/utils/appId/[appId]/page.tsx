@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { cookies } from "next/headers";
 import { getRepoContents } from "@/lib/github-auth";
-import { Badge, Download } from "lucide-react";
+import { Badge, Download, FileStack } from "lucide-react";
 
 type WorkflowFile = {
   name: string;
@@ -65,18 +71,23 @@ export default async function WorkflowPage({
         <p className="text-muted-foreground">No workflow files found.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                Workflows Found <span className="badge badge-outline">12</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-sm">
-                Workflows tied to this appId.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="col-span-full">
+            <Card className="border-primary shadow-md col-span-full">
+              <CardHeader className="flex flex-col items-center justify-center space-y-2 text-center">
+                <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                  <FileStack className="w-6 h-6 text-primary" />
+                  Workflows Found
+                  <span className="ml-2 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-sm font-medium text-primary">
+                    {jsonFiles.length}
+                  </span>
+                </CardTitle>
+                <CardDescription>
+                  Workflows tied to this <code>appId</code>
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+
           {jsonFiles.map((file) => (
             <div key={file.name} className="group">
               <Link
