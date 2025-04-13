@@ -35,6 +35,7 @@ import {
 import { ShieldCheck, CheckCircle } from "lucide-react";
 import VkycConfigFetcher from "@/components/VkycConfigFetcher";
 import ThomasConfigFetcher from "@/components/ThomasConfigFetcher";
+import GkycConfigViewer from "@/components/GkycConfigFetcher";
 
 type WorkflowFile = {
   name: string;
@@ -73,6 +74,23 @@ interface ThomasConfigFetcherProps {
   auditStatuses: ModuleAuditStatus[];
 }
 
+interface ResponseSummaryItem {
+  code: string;
+  channel: string;
+  message: string;
+  maxAttempts: number;
+}
+
+interface RequestConfigItem {
+  check?: string;
+  module?: string;
+}
+
+interface GkycConfigViewerProps {
+  responseSummary: ResponseSummaryItem[];
+  requestConfig: RequestConfigItem[];
+}
+
 export default async function WorkflowPage({
   params,
 }: {
@@ -106,6 +124,55 @@ export default async function WorkflowPage({
         </AlertDescription>
       </Alert>
     );
+  }
+  let responseSummary: ResponseSummaryItem[] = [];
+  let requestConfig: RequestConfigItem[] = [];
+  let gkycError = null;
+
+  try {
+    const responseSummaryPath = `buckets/prod-gkyc-ind/response-summary/${appId}.json`;
+    const rawResponseSummary = await getRepoFileContent(
+      accessToken,
+      process.env.GKYC_CONFIG_REPO!,
+      responseSummaryPath
+    );
+    const parsedResponse = JSON.parse(rawResponseSummary);
+
+    responseSummary = parsedResponse.map(
+      (item: any): ResponseSummaryItem => ({
+        code: item.root,
+        channel: item.conditions[0].channel,
+        message: item.conditions[0].message,
+        maxAttempts: item.maxAttempts,
+      })
+    );
+
+    const requestConfigPath = `buckets/prod-gkyc-ind/request-param-config/${appId}.json`;
+    const rawRequestConfig = await getRepoFileContent(
+      accessToken,
+      process.env.GKYC_CONFIG_REPO!,
+      requestConfigPath
+    );
+
+    const parsedRequest = JSON.parse(rawRequestConfig);
+
+    requestConfig = Object.entries(parsedRequest).flatMap(
+      ([module, moduleObj]: [string, any]) => {
+        const params = moduleObj.params ?? {};
+        return Object.entries(params)
+          .filter(([, config]) => (config as { value: string }).value === "yes")
+          .map(([check]) => ({
+            module,
+            check,
+          }));
+      }
+    );
+  } catch (err: unknown) {
+    gkycError =
+      err instanceof Error
+        ? err.message
+        : "Something went wrong while fetching GKYCs.";
+    console.log(gkycError);
   }
 
   const match = files.find((f: any) => f.name === workflowId);
@@ -172,7 +239,6 @@ export default async function WorkflowPage({
     )
   ) as string[];
 
-  console.log("thomasEndpoints", thomasEndpoints);
 
   let thomasFetchError = null;
   try {
@@ -191,13 +257,11 @@ export default async function WorkflowPage({
         thomasConfigs[endpoint] = null;
       }
     }
-    console.log(thomasConfigs);
   } catch (err: unknown) {
     thomasFetchError =
       err instanceof Error
         ? err.message
         : "Something went wrong while fetching thomas.";
-    console.log(thomasFetchError);
   }
 
   const thomasAuditFlags: Record<string, boolean> = {};
@@ -217,19 +281,19 @@ export default async function WorkflowPage({
     thomasAuditFlags[endpoint] = defaultFlag || appFlag;
   }
 
-  console.log("thomasAuditFlags", thomasAuditFlags);
-
-  const auditStatuses: ModuleAuditStatus[] = thomasEndpoints.map((endpoint) => ({
-    module: endpoint,
-    pushToAuditPortal:
-      thomasConfigs[endpoint] === null
-        ? null
-        : thomasAuditFlags[endpoint] ?? false,
-  }));
+  const auditStatuses: ModuleAuditStatus[] = thomasEndpoints.map(
+    (endpoint) => ({
+      module: endpoint,
+      pushToAuditPortal:
+        thomasConfigs[endpoint] === null
+          ? null
+          : thomasAuditFlags[endpoint] ?? false,
+    })
+  );
 
   const thomasProps: ThomasConfigFetcherProps = {
-  auditStatuses,
-};
+    auditStatuses,
+  };
 
   const verificationInfoModule = modules.find(
     (m: any) =>
@@ -259,20 +323,17 @@ export default async function WorkflowPage({
           category: step.category, // Optional, will be undefined if not present
         })),
       };
-      console.log(vkycWorklow);
     } catch (err: unknown) {
       vkycError =
         err instanceof Error
           ? err.message
           : "Something went wrong while fetching vkyc.";
-      console.log(vkycError);
     }
 
     const verificationInfo =
       verificationInfoModule?.properties?.requestBody?.verificationInfo ?? [];
 
     verificationInfo.forEach((item: any) => {
-      console.log(item)
       const qa = {
         question: item.text,
         answer: item.originalValue,
@@ -284,9 +345,6 @@ export default async function WorkflowPage({
         professionalQuestions.push(qa);
       }
     });
-
-    console.log(professionalQuestions);
-    console.log(personalQuestions);
   }
   return (
     <main className="max-w-5xl mx-auto py-10 px-4 space-y-6">
@@ -356,10 +414,11 @@ export default async function WorkflowPage({
                           {issues.map((issue: any, idx: number) => (
                             <li key={idx} className="flex items-start gap-2">
                               <span
-                                className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-md ${issue.type === "ERROR"
+                                className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-md ${
+                                  issue.type === "ERROR"
                                     ? "text-destructive border border-destructive bg-destructive/10"
                                     : "text-yellow-600 border border-yellow-500 bg-yellow-500/10"
-                                  }`}
+                                }`}
                               >
                                 {issue.type?.toUpperCase() ?? "ISSUE"}
                               </span>
@@ -478,7 +537,7 @@ export default async function WorkflowPage({
               <CheckCircle className="h-5 w-5 text-green-500" />
               <AlertTitle>VKYC Flow Detected</AlertTitle>
               {personalQuestions.length > 0 ||
-                professionalQuestions.length > 0 ? (
+              professionalQuestions.length > 0 ? (
                 <AlertDescription>
                   Personal / professional questions found under Video PD module.
                 </AlertDescription>
@@ -500,11 +559,23 @@ export default async function WorkflowPage({
       {thomasFetchError !== null ? (
         <Alert variant="destructive">
           <AlertTitle>Thomas Config Error</AlertTitle>
-          <AlertDescription>
-            {thomasFetchError}
-          </AlertDescription>
+          <AlertDescription>{thomasFetchError}</AlertDescription>
         </Alert>
-      ) : <ThomasConfigFetcher {...thomasProps} />}
+      ) : (
+        <ThomasConfigFetcher {...thomasProps} />
+      )}
+
+      {gkycError !== null ? (
+        <Alert variant="destructive">
+          <AlertTitle>GKYCs Config Error</AlertTitle>
+          <AlertDescription>{gkycError}</AlertDescription>
+        </Alert>
+      ) : (
+        <GkycConfigViewer
+          responseSummary={responseSummary}
+          requestConfig={requestConfig}
+        />
+      )}
     </main>
   );
 }
