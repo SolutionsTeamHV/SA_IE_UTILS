@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { cookies } from "next/headers";
 import { getRepoContents } from "@/lib/github-auth";
+import { Download } from "lucide-react";
 
 type WorkflowFile = {
   name: string;
@@ -65,22 +66,34 @@ export default async function WorkflowPage({
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {jsonFiles.map((file) => (
-            <Link
-              key={file.name}
-              href={`/dashboard/utils/appId/${appId}/${file.name}`}
-              className="group"
-            >
-              <Card className="transition border border-muted hover:border-primary shadow-sm group-hover:shadow-md">
-                <CardContent className="p-4 space-y-2">
-                  <div className="truncate font-mono text-sm text-foreground group-hover:text-primary">
-                    {file.name}
-                  </div>
-                  <div className="text-xs text-muted-foreground group-hover:text-primary group-hover:underline">
-                    View Details →
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+            <div key={file.name} className="group">
+              <Link
+                href={`/dashboard/utils/appId/${appId}/${file.name}`}
+                className="block"
+              >
+                <Card className="transition border border-muted hover:border-primary shadow-sm group-hover:shadow-md">
+                  <CardContent className="p-4 space-y-2">
+                    <div className="truncate font-mono text-sm text-foreground group-hover:text-primary">
+                      {file.name}
+                    </div>
+                    <div className="text-xs text-muted-foreground group-hover:text-primary group-hover:underline">
+                      View Details →
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              <div className="flex items-center space-x-2 text-xs text-muted-foreground group-hover:text-primary mt-2">
+                <Link
+                  href={file.download_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-1"
+                >
+                  <Download className="w-4 h-4" strokeWidth={1.5} />
+                  <span>Download</span>
+                </Link>
+              </div>
+            </div>
           ))}
         </div>
       )}
