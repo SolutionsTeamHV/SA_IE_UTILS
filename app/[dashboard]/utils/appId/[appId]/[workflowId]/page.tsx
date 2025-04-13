@@ -26,6 +26,13 @@ import {
 } from "@/components/ui/accordion";
 import { cookies } from "next/headers";
 import { getRepoContents } from "@/lib/github-auth";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { ShieldCheck } from "lucide-react";
 
 type WorkflowFile = {
   name: string;
@@ -39,7 +46,9 @@ type PageParams = {
 
 export default async function WorkflowPage({
   params,
-}: { params: Promise<PageParams> }) {
+}: {
+  params: Promise<PageParams>;
+}) {
   const { appId, workflowId } = await params;
 
   const cookieStore = cookies();
@@ -62,7 +71,10 @@ export default async function WorkflowPage({
     return (
       <Alert variant="destructive">
         <AlertTitle>Error loading workflows</AlertTitle>
-        <AlertDescription>WorkflowId: {workflowId} - {err instanceof Error ? err.message : "Unknown error"}</AlertDescription>
+        <AlertDescription>
+          WorkflowId: {workflowId} -{" "}
+          {err instanceof Error ? err.message : "Unknown error"}
+        </AlertDescription>
       </Alert>
     );
   }
@@ -121,16 +133,20 @@ export default async function WorkflowPage({
         <div className="space-y-4">
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle className="text-muted-foreground">
+              <CardTitle className="flex items-center gap-2 text-muted-foreground">
+                <ShieldCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
                 Validation Status
+                <span className="italic text-sm text-muted-foreground">
+                  (Validated using validatorv2)
+                </span>
               </CardTitle>
             </CardHeader>
 
             <CardContent className="flex flex-wrap items-center gap-3">
               {result.success ? (
                 <Badge
-                  variant="default"
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  variant="outline"
+                  className="border-green-600 text-green-600 px-3 py-1.5 text-sm"
                 >
                   ✅ Passed
                 </Badge>
@@ -148,59 +164,58 @@ export default async function WorkflowPage({
                   >
                     ⚠️ Warnings: {warningCount}
                   </Badge>
+
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="ml-2 text-sm px-3 py-1.5 cursor-pointer"
+                      >
+                        View Validation Logs
+                      </Button>
+                    </DialogTrigger>
+
+                    <DialogOverlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
+                    <DialogContent className="max-w-6xl z-50">
+                      <DialogHeader>
+                        <DialogTitle className="text-foreground">
+                          Validation Issues
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground">
+                          These issues were detected during validation.
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <div className="mt-4 max-h-[400px] overflow-y-auto pr-1">
+                        <ul className="space-y-4 text-sm">
+                          {issues.map((issue: any, idx: number) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span
+                                className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-md ${
+                                  issue.type === "ERROR"
+                                    ? "text-destructive border border-destructive bg-destructive/10"
+                                    : "text-yellow-600 border border-yellow-500 bg-yellow-500/10"
+                                }`}
+                              >
+                                {issue.type?.toUpperCase() ?? "ISSUE"}
+                              </span>
+                              <div className="text-foreground leading-snug">
+                                <span className="font-semibold">
+                                  {issue.code ?? "Issue"}:
+                                </span>{" "}
+                                {issue.text}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </>
               )}
             </CardContent>
           </Card>
         </div>
-
-        {!result.success && (
-          <Dialog>
-            <DialogTrigger asChild>
-              <button className="text-sm text-primary underline hover:opacity-80 transition mt-4">
-                View Validation Details
-              </button>
-            </DialogTrigger>
-
-            {/* Overlay with blur */}
-            <DialogOverlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
-
-            <DialogContent className="max-w-6xl z-50">
-              <DialogHeader>
-                <DialogTitle className="text-foreground">
-                  Validation Issues
-                </DialogTitle>
-                <DialogDescription className="text-sm text-muted-foreground">
-                  These issues were detected during validation.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="mt-4 max-h-[400px] overflow-y-auto pr-1">
-                <ul className="space-y-4 text-sm">
-                  {issues.map((issue: any, idx: number) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span
-                        className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-md ${
-                          issue.type === "ERROR"
-                            ? "text-destructive border border-destructive bg-destructive/10"
-                            : "text-yellow-600 border border-yellow-500 bg-yellow-500/10"
-                        }`}
-                      >
-                        {issue.type?.toUpperCase() ?? "ISSUE"}
-                      </span>
-                      <div className="text-foreground leading-snug">
-                        <span className="font-semibold">
-                          {issue.code ?? "Issue"}:
-                        </span>{" "}
-                        {issue.text}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
       </div>
 
       {/* Metadata - 3 column layout */}

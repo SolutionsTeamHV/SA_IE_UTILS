@@ -59,10 +59,11 @@ export default function AppLandingPage() {
             VKYC/GKYC summaries, and production audit checks — in one place.
           </p>
           <div className="pt-6">
-            <Link href="/api/auth/github">
-              <a className="bg-blue-500 text-white px-4 py-2 rounded">
-                Sign in with GitHub
-              </a>
+            <Link
+              href="/api/auth/github"
+              className="bg-blue-500 text-white px-4 py-2 rounded"
+            >
+              Sign in with GitHub
             </Link>
           </div>
         </div>
@@ -125,7 +126,7 @@ export default function AppLandingPage() {
 
       {/* Footer */}
       <footer className="text-center py-12 text-sm text-muted-foreground">
-        Built with 💙 by SA / IE Team • HyperVerge
+        Built with 💙 for SA / IE Team • HyperVerge
       </footer>
     </div>
   );
