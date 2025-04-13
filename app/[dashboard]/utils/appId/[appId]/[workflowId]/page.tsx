@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/tooltip";
 import { ShieldCheck, CheckCircle } from "lucide-react";
 import VkycConfigFetcher from "@/components/VkycConfigFetcher";
+import ThomasConfigFetcher from "@/components/ThomasConfigFetcher";
 
 type WorkflowFile = {
   name: string;
@@ -61,6 +62,15 @@ interface ProfessionalQuestions {
 interface PersonalQuestions {
   question: string;
   answer: string;
+}
+
+interface ModuleAuditStatus {
+  module: string;
+  pushToAuditPortal: boolean | null;
+}
+
+interface ThomasConfigFetcherProps {
+  auditStatuses: ModuleAuditStatus[];
 }
 
 export default async function WorkflowPage({
@@ -119,6 +129,7 @@ export default async function WorkflowPage({
   const personalQuestions: PersonalQuestions[] = [];
   const professionalQuestions: ProfessionalQuestions[] = [];
   let workflowConfig: WorkflowConfig = { steps: [] };
+  const thomasConfigs: Record<string, any> = {};
   const result = await validationRes.json();
   const issues = result.issues ?? [];
   const workflow = result.workflow;
@@ -144,6 +155,81 @@ export default async function WorkflowPage({
         env = "staging";
       return { url: m.properties.url, env };
     });
+
+  const thomasEndpoints: string[] = Array.from(
+    new Set(
+      modules
+        .filter(
+          (m: any) =>
+            m.subtype !== "dynamicForm" &&
+            typeof m.properties?.url === "string" &&
+            m.properties.url.includes("thomas")
+        )
+        .map((m: any) => {
+          const parts = m.properties.url.split("/");
+          return parts[parts.length - 1]; // get the last segment
+        })
+    )
+  ) as string[];
+
+  console.log("thomasEndpoints", thomasEndpoints);
+
+  let thomasFetchError = null;
+  try {
+    for (const endpoint of thomasEndpoints as string[]) {
+      const configPath = `sync_buckets/${endpoint}/default/ClientConfig.json`;
+
+      try {
+        const configRaw = await getRepoFileContent(
+          accessToken,
+          process.env.THOMAS_CONFIG_REPO!,
+          configPath
+        );
+        thomasConfigs[endpoint] = JSON.parse(configRaw);
+      } catch (err) {
+        console.warn(`Failed to fetch config for ${endpoint}:`, err);
+        thomasConfigs[endpoint] = null;
+      }
+    }
+    console.log(thomasConfigs);
+  } catch (err: unknown) {
+    thomasFetchError =
+      err instanceof Error
+        ? err.message
+        : "Something went wrong while fetching thomas.";
+    console.log(thomasFetchError);
+  }
+
+  const thomasAuditFlags: Record<string, boolean> = {};
+
+  for (const [endpoint, config] of Object.entries(thomasConfigs)) {
+    if (!config) {
+      thomasAuditFlags[endpoint] = false;
+      continue;
+    }
+
+    const defaultConfig = config["default"];
+    const appConfig = config[appId];
+
+    const defaultFlag = defaultConfig?.config?.pushToAuditPortal === true;
+    const appFlag = appConfig?.config?.pushToAuditPortal === true;
+
+    thomasAuditFlags[endpoint] = defaultFlag || appFlag;
+  }
+
+  console.log("thomasAuditFlags", thomasAuditFlags);
+
+  const auditStatuses: ModuleAuditStatus[] = thomasEndpoints.map((endpoint) => ({
+    module: endpoint,
+    pushToAuditPortal:
+      thomasConfigs[endpoint] === null
+        ? null
+        : thomasAuditFlags[endpoint] ?? false,
+  }));
+
+  const thomasProps: ThomasConfigFetcherProps = {
+  auditStatuses,
+};
 
   const verificationInfoModule = modules.find(
     (m: any) =>
@@ -178,7 +264,7 @@ export default async function WorkflowPage({
       vkycError =
         err instanceof Error
           ? err.message
-          : "Something went wrong while fetching workflows.";
+          : "Something went wrong while fetching vkyc.";
       console.log(vkycError);
     }
 
@@ -270,11 +356,10 @@ export default async function WorkflowPage({
                           {issues.map((issue: any, idx: number) => (
                             <li key={idx} className="flex items-start gap-2">
                               <span
-                                className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-md ${
-                                  issue.type === "ERROR"
+                                className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-md ${issue.type === "ERROR"
                                     ? "text-destructive border border-destructive bg-destructive/10"
                                     : "text-yellow-600 border border-yellow-500 bg-yellow-500/10"
-                                }`}
+                                  }`}
                               >
                                 {issue.type?.toUpperCase() ?? "ISSUE"}
                               </span>
@@ -341,7 +426,9 @@ export default async function WorkflowPage({
               <AccordionTrigger className="flex items-center justify-between w-full p-2 cursor-pointer">
                 <div className="flex-1">
                   <CardHeader className="p-2">
-                    <CardTitle className="text-left">SDK Response Keys</CardTitle>
+                    <CardTitle className="text-left">
+                      SDK Response Keys
+                    </CardTitle>
                   </CardHeader>
                 </div>
               </AccordionTrigger>
@@ -391,7 +478,7 @@ export default async function WorkflowPage({
               <CheckCircle className="h-5 w-5 text-green-500" />
               <AlertTitle>VKYC Flow Detected</AlertTitle>
               {personalQuestions.length > 0 ||
-              professionalQuestions.length > 0 ? (
+                professionalQuestions.length > 0 ? (
                 <AlertDescription>
                   Personal / professional questions found under Video PD module.
                 </AlertDescription>
@@ -409,6 +496,15 @@ export default async function WorkflowPage({
           </div>
         )
       )}
+
+      {thomasFetchError !== null ? (
+        <Alert variant="destructive">
+          <AlertTitle>Thomas Config Error</AlertTitle>
+          <AlertDescription>
+            {thomasFetchError}
+          </AlertDescription>
+        </Alert>
+      ) : <ThomasConfigFetcher {...thomasProps} />}
     </main>
   );
 }

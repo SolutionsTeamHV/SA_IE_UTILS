@@ -158,7 +158,7 @@ export function URLList({ urls }: { urls: WorkflowUrl[] }) {
               {u.url}
             </span>
 
-            {u.env === "dev" && (
+            {u.url.includes("thomas") && u.env === "dev" && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span className="text-xs text-yellow-600 dark:text-yellow-400 italic cursor-pointer">
@@ -166,7 +166,7 @@ export function URLList({ urls }: { urls: WorkflowUrl[] }) {
                   </span>
                 </TooltipTrigger>
                 <TooltipContent className="bg-muted text-muted-foreground border border-border rounded shadow-md p-2">
-                  Dev URL should not be used inside a workflow. This can cause
+                  Thomas Dev URL should not be used inside a workflow. This can cause
                   unexpected cases like transaction status not being updated (
                   <span className="font-mono text-red-600 dark:text-red-400">
                     status_unavailable
