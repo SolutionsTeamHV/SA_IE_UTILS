@@ -140,7 +140,7 @@ export default async function WorkflowPage({
 
     responseSummary = parsedResponse.map(
       (item: any): ResponseSummaryItem => ({
-        code: item.root,
+        code: item.conditions[0].code,
         channel: item.conditions[0].channel,
         message: item.conditions[0].message,
         maxAttempts: item.maxAttempts,
