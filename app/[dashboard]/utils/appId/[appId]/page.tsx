@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { cookies } from "next/headers";
 import { getRepoContents } from "@/lib/github-auth";
-import { Badge, Download, FileStack } from "lucide-react";
+import { Download, FileStack } from "lucide-react";
 
 type WorkflowFile = {
   name: string;
