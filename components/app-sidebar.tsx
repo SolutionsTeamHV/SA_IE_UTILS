@@ -40,19 +40,19 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         },
         {
           title: "Production Checkup 🚀",
-          url: "#",
+          url: "/dashboard/utils/prod-checkup",
         },
         {
           title: "Super Copy 📤",
-          url: "#",
+          url: "/dashboard/utils/super-copy",
         },
         {
           title: "Magic Summary 🔮",
-          url: "#",
+          url: "/dashboard/utils/magic-summary",
         },
         {
           title: "My PRs 🛠️",
-          url: "#",
+          url: "/dashboard/utils/pull-requests",
         },
       ],
     },
@@ -60,13 +60,11 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
 
   const navSecondary = [
     {
-      title: "Support",
-      url: "#",
-      icon: LifeBuoy,
-    },
-    {
       title: "Feedback",
-      url: "#",
+      url:
+        "mailto:jai.k@hyperverge.co,vinoth.r@hyperverge.co" +
+        "?subject=Feedback%20-%20SA%20%2F%20IE%20UTILS" +
+        "&body=Hey%20team%2C%20here%27s%20my%20feedback...",
       icon: Send,
     },
   ];
@@ -100,7 +98,6 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />
-        <NavProjects projects={projects} />
         <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
