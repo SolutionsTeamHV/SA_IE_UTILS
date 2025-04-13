@@ -1,5 +1,17 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
+'use client';
+
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from '@/components/ui/accordion';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 
 interface ResponseSummaryItem {
@@ -19,7 +31,10 @@ interface GkycConfigViewerProps {
   requestConfig: RequestConfigItem[];
 }
 
-export default function GkycConfigViewer({ responseSummary, requestConfig }: GkycConfigViewerProps) {
+export default function GkycConfigViewer({
+  responseSummary,
+  requestConfig,
+}: GkycConfigViewerProps) {
   const getChannelColor = (channel: string) => {
     const lower = channel.toLowerCase();
     if (lower === 'red') return 'red';
@@ -30,82 +45,99 @@ export default function GkycConfigViewer({ responseSummary, requestConfig }: Gky
 
   return (
     <>
+      {/* Response Summary */}
       {responseSummary?.length > 0 && (
-        <>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-foreground dark:text-white">
+        <div className="mt-10">
+          <div className="rounded-lg border border-border p-6 shadow-md">
+            <h2 className="text-lg font-semibold text-foreground">
               Response Summary
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Accordion type="single" collapsible className="bg-gray-100 dark:bg-[#1a1a1a] rounded-lg">
+            </h2>
+            <Accordion type="single" collapsible className="w-full mt-4">
               <AccordionItem value="response-summary">
-          <AccordionTrigger className="text-base font-medium text-foreground dark:text-white">
-            View Summary Items
-          </AccordionTrigger>
-          <AccordionContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-            {responseSummary.map((item, index) => (
-              <Card key={index} className="p-4 rounded-lg shadow-md bg-white dark:bg-[#2a2a2a]">
-                <CardHeader>
-            <CardTitle className="text-primary dark:text-primary-light">Code: {item.code}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-wrap gap-2 text-sm">
-            <Chip color={getChannelColor(item.channel)}>Channel</Chip>
-            <Chip className="text-foreground dark:text-white">Message: {item.message}</Chip>
-            <Chip className="text-foreground dark:text-white">Max Attempts: {item.maxAttempts}</Chip>
-                </CardContent>
-              </Card>
-            ))}
-          </AccordionContent>
+                <AccordionTrigger>View Summary Items</AccordionTrigger>
+                <AccordionContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                  {responseSummary.map((item, index) => (
+                    <div
+                      key={index}
+                      className="rounded-lg border border-border p-4 shadow-sm bg-background"
+                    >
+                      <div className="space-y-2 text-sm text-muted-foreground">
+                        <div>
+                          <strong>Code:</strong> {item.code}
+                        </div>
+                        <div>
+                          <strong>Channel:</strong>{' '}
+                          <Chip color={getChannelColor(item.channel)}>
+                            {item.channel}
+                          </Chip>
+                        </div>
+                        <div>
+                          <strong>Message:</strong> {item.message}
+                        </div>
+                        <div>
+                          <strong>Max Attempts:</strong> {item.maxAttempts}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </AccordionContent>
               </AccordionItem>
             </Accordion>
-            </CardContent>
-          </>
-        )}
-  
-        {requestConfig?.length > 0 && (
-            <>
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-foreground dark:text-white">
-            Request Parameters
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Accordion type="single" collapsible className="bg-gray-100 dark:bg-[#1a1a1a] rounded-lg">
-          <AccordionItem value="request-config">
-            <AccordionTrigger className="text-base font-medium text-foreground dark:text-white">
-              View Parameter Items
-            </AccordionTrigger>
-            <AccordionContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-              {requestConfig.map((item, index) => {
-                const parts = item.check?.split('.') || [];
-                const labelTypes = ['qualityChecks', 'forgeryChecks', 'ruleChecks'];
-                const label = labelTypes.includes(parts[0]) ? parts[0] : 'Misc';
-                const check = parts.length > 1 ? parts[1] : parts[0];
-                const moduleName = item.module || 'Unknown Module';
+          </div>
+        </div>
+      )}
 
-                return (
-            <Card key={index} className="p-4 rounded-lg shadow-md bg-white dark:bg-[#2a2a2a]">
-              <CardHeader>
-                <CardTitle className="text-primary dark:text-secondary-light">{check}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-foreground dark:text-white">
-                <div>
-                  <strong>Label:</strong> {label}
-                </div>
-                <div>
-                  <strong>Module:</strong> {moduleName}
-                </div>
-              </CardContent>
-            </Card>
-                );
-              })}
-            </AccordionContent>
-          </AccordionItem>
-              </Accordion>
-            </CardContent>
-          </>
-        )}
+      {/* Request Parameters */}
+      {requestConfig?.length > 0 && (
+        <div className="mt-10">
+          <div className="rounded-lg border border-border p-6 shadow-md">
+            <h2 className="text-lg font-semibold text-foreground">
+              Request Parameters
+            </h2>
+            <Accordion type="single" collapsible className="w-full mt-4">
+              <AccordionItem value="request-config">
+                <AccordionTrigger>View Parameter Items</AccordionTrigger>
+                <AccordionContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                  {requestConfig.map((item, index) => {
+                    const parts = item.check?.split('.') || [];
+                    const labelTypes = [
+                      'preferences',
+                      'qualityChecks',
+                      'forgeryChecks',
+                      'ruleChecks',
+                    ];
+                    const label = labelTypes.includes(parts[0])
+                      ? parts[0]
+                      : 'Misc';
+                    const check =
+                      parts.length > 1 ? parts.slice(1).join('.') : parts[0];
+                    const moduleName = item.module || 'Unknown Module';
+
+                    return (
+                      <div
+                        key={index}
+                        className="rounded-lg border border-border p-4 shadow-sm bg-background"
+                      >
+                        <div className="space-y-2 text-sm text-muted-foreground">
+                          <div>
+                            <strong>Check:</strong> {check}
+                          </div>
+                          <div>
+                            <strong>Label:</strong> {label}
+                          </div>
+                          <div>
+                            <strong>Module:</strong> {moduleName}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        </div>
+      )}
     </>
   );
 }
