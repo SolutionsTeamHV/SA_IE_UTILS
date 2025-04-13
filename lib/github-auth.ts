@@ -82,3 +82,36 @@ export async function getRepoContents(
 
   return response.json();
 }
+
+export async function getRepoFileContent(
+  accessToken: string,
+  repo: string,
+  filePath: string
+): Promise<string> {
+  console.log(`PATH: https://api.github.com/repos/${process.env.GITHUB_REPO_OWNER}/${repo}/contents/${filePath}`)
+  const response = await fetch(
+    `https://api.github.com/repos/${process.env.GITHUB_REPO_OWNER}/${repo}/contents/${filePath}`,
+    {
+      headers: {
+        Authorization: `token ${accessToken}`,
+        Accept: "application/vnd.github+json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch file content. Make sure the file path is correct and you have access.`
+    );
+  }
+
+  const data = await response.json();
+
+  if (data.encoding !== "base64") {
+    throw new Error(`Unsupported encoding: ${data.encoding}`);
+  }
+
+  const content = Buffer.from(data.content, "base64").toString("utf-8");
+  return content;
+}
+

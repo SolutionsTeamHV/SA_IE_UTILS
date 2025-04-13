@@ -69,14 +69,6 @@ export default async function DashboardHomePage() {
           before deployment.
         </AlertDescription>
       </Alert>
-
-      <Alert variant="default">
-        <CheckCircle className="h-5 w-5 text-green-500" />
-        <AlertTitle>VKYC Flow Detected</AlertTitle>
-        <AlertDescription>
-          Personal and professional questions found under Video PD module.
-        </AlertDescription>
-      </Alert>
     </div>
   );
 }

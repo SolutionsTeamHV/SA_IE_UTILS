@@ -25,14 +25,14 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { cookies } from "next/headers";
-import { getRepoContents } from "@/lib/github-auth";
+import { getRepoContents, getRepoFileContent } from "@/lib/github-auth";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, CheckCircle } from "lucide-react";
 
 type WorkflowFile = {
   name: string;
@@ -43,6 +43,18 @@ type WorkflowFile = {
 type PageParams = {
   [key: string]: string;
 };
+
+interface ProfessionalQuestions {
+  question: string;
+  answer: string;
+}
+interface PersonalQuestions {
+  question: string;
+  answer: string;
+}
+
+const personalQuestions: PersonalQuestions[] = [];
+const professionalQuestions: ProfessionalQuestions[] = [];
 
 export default async function WorkflowPage({
   params,
@@ -123,6 +135,54 @@ export default async function WorkflowPage({
       return { url: m.properties.url, env };
     });
 
+  const verificationInfoModule = modules.find(
+    (m: any) =>
+      m.subtype !== "dynamicForm" &&
+      typeof m.properties?.url === "string" &&
+      m.properties.url.endsWith("/verificationInfo")
+  );
+
+  const isVkycFlow: boolean = urls.some(({ url }) =>
+    url.toLowerCase().includes("vcip")
+  );
+  let vkycError = null;
+  if (isVkycFlow) {
+    try {
+      const filePath = `buckets/videokyc-configs/workflow_configs/workflow_${appId}.json`;
+      const raw = await getRepoFileContent(
+        accessToken,
+        process.env.VKYC_CONFIG_REPO!,
+        filePath
+      );
+      const vkycWorklow = JSON.parse(raw);
+      console.log(vkycWorklow);
+    } catch (err: unknown) {
+      vkycError =
+        err instanceof Error
+          ? err.message
+          : "Something went wrong while fetching workflows.";
+      console.log(vkycError);
+    }
+
+    const verificationInfo =
+      verificationInfoModule?.properties?.requestBody?.verificationInfo ?? [];
+
+    verificationInfo.forEach((item: any) => {
+      const qa = {
+        question: item.text,
+        answer: item.originalValue,
+      };
+
+      if (item.category === "personal") {
+        personalQuestions.push(qa);
+      } else if (item.category === "professional") {
+        professionalQuestions.push(qa);
+      }
+    });
+
+    console.log(professionalQuestions);
+    console.log(personalQuestions);
+  }
   return (
     <main className="max-w-5xl mx-auto py-10 px-4 space-y-6">
       <h1 className="text-2xl font-bold">
@@ -295,6 +355,25 @@ export default async function WorkflowPage({
           </Accordion>
         </Card>
       </div>
+
+      {isVkycFlow && (
+        <div className="grid grid-cols-1">
+          <Alert variant="default">
+            <CheckCircle className="h-5 w-5 text-green-500" />
+            <AlertTitle>VKYC Flow Detected</AlertTitle>
+            {(personalQuestions.length > 0 ||
+            professionalQuestions.length > 0) ? (
+              <AlertDescription>
+                Personal / professional questions found under Video PD module.
+              </AlertDescription>
+            ) : (
+              <AlertDescription>
+                Video PD module is not used.
+              </AlertDescription>
+            )}
+          </Alert>
+        </div>
+      )}
     </main>
   );
 }
