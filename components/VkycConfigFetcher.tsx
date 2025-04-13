@@ -15,7 +15,6 @@ interface WorkflowConfig {
     category?: string;
   }[];
 }
-
 interface ProfessionalQuestions {
   question: string;
   answer: string;
@@ -40,7 +39,7 @@ export default function VkycConfigFetcher({
     <>
       {workflowConfig && workflowConfig.steps?.length > 0 && (
         <div className="mt-10">
-          <div className="rounded-lg border border-border bg-white dark:bg-[#1e1e1e] p-6 shadow-md">
+          <div className="rounded-lg border border-border p-6 shadow-md">
             <h2 className="text-lg font-semibold text-foreground">
               VKYC Workflow Steps
             </h2>
@@ -49,7 +48,7 @@ export default function VkycConfigFetcher({
                 <AccordionItem value={`item-${index}`} key={index}>
                   <AccordionTrigger>{step.documentType}</AccordionTrigger>
                   <AccordionContent>
-                    <div className="rounded-lg border border-border bg-muted dark:bg-[#2e2e2e] p-4 shadow-sm">
+                    <div className="rounded-lg border border-border p-4 shadow-sm">
                       <div className="space-y-2 text-sm text-muted-foreground">
                         <div>
                           <strong>Title:</strong> {step.title}
@@ -74,9 +73,9 @@ export default function VkycConfigFetcher({
 
       {professionalQuestions?.length > 0 && (
         <div className="mt-10">
-          <div className="rounded-lg border border-border bg-white dark:bg-[#1e1e1e] p-6 shadow-md">
+          <div className="rounded-lg border border-border p-6 shadow-md">
             <h2 className="text-lg font-semibold text-foreground">
-              Professional Questions
+              Video PD Professional Questions
             </h2>
             <Accordion type="single" collapsible className="w-full mt-4">
               {professionalQuestions.map((question, index) => (
@@ -96,9 +95,9 @@ export default function VkycConfigFetcher({
 
       {personalQuestions?.length > 0 && (
         <div className="mt-10">
-          <div className="rounded-lg border border-border bg-white dark:bg-[#1e1e1e] p-6 shadow-md">
+          <div className="rounded-lg border border-border p-6 shadow-md">
             <h2 className="text-lg font-semibold text-foreground">
-              Personal Questions
+              Video PD Personal Questions
             </h2>
             <Accordion type="single" collapsible className="w-full mt-4">
               {personalQuestions.map((question, index) => (

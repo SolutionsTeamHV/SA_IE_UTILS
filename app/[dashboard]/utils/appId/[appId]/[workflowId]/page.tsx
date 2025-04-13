@@ -138,7 +138,7 @@ export default async function WorkflowPage({
       const rawUrl = m.properties.url.toLowerCase();
       let env = "prod";
       if (rawUrl.includes("dev")) env = "dev";
-      else if (rawUrl.includes("uat")) env = "uat";
+      else if (rawUrl.includes("uat") || rawUrl.includes("demo")) env = "uat";
       else if (rawUrl.includes("test")) env = "test";
       else if (rawUrl.includes("stage") || rawUrl.includes("staging"))
         env = "staging";
@@ -341,7 +341,7 @@ export default async function WorkflowPage({
               <AccordionTrigger className="flex items-center justify-between w-full p-2 cursor-pointer">
                 <div className="flex-1">
                   <CardHeader className="p-2">
-                    <CardTitle className="text-left">SDK Responses</CardTitle>
+                    <CardTitle className="text-left">SDK Response Keys</CardTitle>
                   </CardHeader>
                 </div>
               </AccordionTrigger>
