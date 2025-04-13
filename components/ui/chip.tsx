@@ -7,10 +7,10 @@ interface ChipProps extends React.HTMLAttributes<HTMLDivElement> {
 export const Chip = ({ children, color = 'default', className, ...props }: ChipProps) => {
   const base = 'inline-flex items-center border rounded-full px-2.5 py-0.5 text-xs font-medium';
   const colorClasses = {
-    default: 'border-gray-300 text-gray-600',
-    red: 'border-red-500 text-red-500',
-    orange: 'border-orange-500 text-orange-500',
-    green: 'border-green-500 text-green-500',
+    default: 'bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300',
+    red: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+    orange: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
+    green: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
   };
 
   return (

@@ -12,7 +12,7 @@ import {
   CardTitle,
   CardContent,
 } from '@/components/ui/card';
-import { Chip } from '@/components/ui/chip';
+import { Badge } from '@/components/ui/badge';
 
 interface ResponseSummaryItem {
   code: string;
@@ -35,12 +35,12 @@ export default function GkycConfigViewer({
   responseSummary,
   requestConfig,
 }: GkycConfigViewerProps) {
-  const getChannelColor = (channel: string) => {
+  const getChannelBadgeStyle = (channel: string) => {
     const lower = channel.toLowerCase();
-    if (lower === 'red') return 'red';
-    if (lower === 'orange') return 'orange';
-    if (lower === 'green') return 'green';
-    return 'default';
+    if (lower === 'red') return 'border-red-600 text-red-600';
+    if (lower === 'orange') return 'border-orange-600 text-orange-600';
+    if (lower === 'green') return 'border-green-600 text-green-600';
+    return 'border-muted text-muted-foreground';
   };
 
   return (
@@ -59,17 +59,22 @@ export default function GkycConfigViewer({
                   {responseSummary.map((item, index) => (
                     <div
                       key={index}
-                      className="rounded-lg border border-border p-4 shadow-sm bg-background"
+                      className="rounded-lg border border-border p-4 shadow-sm bg-muted text-muted-foreground"
                     >
-                      <div className="space-y-2 text-sm text-muted-foreground">
+                      <div className="space-y-2 text-sm text-foreground">
                         <div>
                           <strong>Code:</strong> {item.code}
                         </div>
-                        <div>
-                          <strong>Channel:</strong>{' '}
-                          <Chip color={getChannelColor(item.channel)}>
+                        <div className="flex items-center gap-3">
+                          <strong>Channel:</strong>
+                          <Badge
+                            variant="outline"
+                            className={`px-3 py-1.5 text-sm ${getChannelBadgeStyle(
+                              item.channel
+                            )}`}
+                          >
                             {item.channel}
-                          </Chip>
+                          </Badge>
                         </div>
                         <div>
                           <strong>Message:</strong> {item.message}

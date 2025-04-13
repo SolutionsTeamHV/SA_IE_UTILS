@@ -12,7 +12,7 @@ export default async function DashboardHomePage() {
       {/* Header */}
       <div className="space-y-1">
         <h1 className="text-3xl font-bold">
-          👨‍💻 SA / IE Suite - Hello, {userName}!
+          👨‍💻 Hello, {userName}!, Welcome to Solution's Dashboard
         </h1>
         <p className="text-muted-foreground">
           Your one-stop control panel to inspect and validate all appId
