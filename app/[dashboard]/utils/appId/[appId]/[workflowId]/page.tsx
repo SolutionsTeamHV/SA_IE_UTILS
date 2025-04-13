@@ -33,12 +33,22 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ShieldCheck, CheckCircle } from "lucide-react";
+import VkycConfigFetcher from "@/components/VkycConfigFetcher";
 
 type WorkflowFile = {
   name: string;
   download_url: string;
   type: string;
 };
+
+interface WorkflowConfig {
+  steps: {
+    title: string;
+    message: string;
+    documentType: string;
+    category?: string;
+  }[];
+}
 
 type PageParams = {
   [key: string]: string;
@@ -52,9 +62,6 @@ interface PersonalQuestions {
   question: string;
   answer: string;
 }
-
-const personalQuestions: PersonalQuestions[] = [];
-const professionalQuestions: ProfessionalQuestions[] = [];
 
 export default async function WorkflowPage({
   params,
@@ -109,6 +116,9 @@ export default async function WorkflowPage({
     );
   }
 
+  const personalQuestions: PersonalQuestions[] = [];
+  const professionalQuestions: ProfessionalQuestions[] = [];
+  let workflowConfig: WorkflowConfig = { steps: [] };
   const result = await validationRes.json();
   const issues = result.issues ?? [];
   const workflow = result.workflow;
@@ -155,6 +165,14 @@ export default async function WorkflowPage({
         filePath
       );
       const vkycWorklow = JSON.parse(raw);
+      workflowConfig = {
+        steps: vkycWorklow.workflow.steps.map((step: any) => ({
+          title: step.title,
+          message: step.message,
+          documentType: step.documentType,
+          category: step.category, // Optional, will be undefined if not present
+        })),
+      };
       console.log(vkycWorklow);
     } catch (err: unknown) {
       vkycError =
@@ -168,6 +186,7 @@ export default async function WorkflowPage({
       verificationInfoModule?.properties?.requestBody?.verificationInfo ?? [];
 
     verificationInfo.forEach((item: any) => {
+      console.log(item)
       const qa = {
         question: item.text,
         answer: item.originalValue,
@@ -356,23 +375,39 @@ export default async function WorkflowPage({
         </Card>
       </div>
 
-      {isVkycFlow && (
-        <div className="grid grid-cols-1">
-          <Alert variant="default">
-            <CheckCircle className="h-5 w-5 text-green-500" />
-            <AlertTitle>VKYC Flow Detected</AlertTitle>
-            {(personalQuestions.length > 0 ||
-            professionalQuestions.length > 0) ? (
-              <AlertDescription>
-                Personal / professional questions found under Video PD module.
-              </AlertDescription>
-            ) : (
-              <AlertDescription>
-                Video PD module is not used.
-              </AlertDescription>
-            )}
-          </Alert>
-        </div>
+      {isVkycFlow && vkycError !== null ? (
+        <Alert variant="destructive">
+          <AlertTitle>VKYC Config Error</AlertTitle>
+          <AlertDescription>
+            {vkycError}. This may indicate that VKYC config has not been added
+            yet, which could break the flow.
+          </AlertDescription>
+        </Alert>
+      ) : (
+        isVkycFlow &&
+        vkycError === null && (
+          <div className="grid grid-cols-1">
+            <Alert variant="default">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <AlertTitle>VKYC Flow Detected</AlertTitle>
+              {personalQuestions.length > 0 ||
+              professionalQuestions.length > 0 ? (
+                <AlertDescription>
+                  Personal / professional questions found under Video PD module.
+                </AlertDescription>
+              ) : (
+                <AlertDescription>
+                  Video PD module is not used.
+                </AlertDescription>
+              )}
+            </Alert>
+            <VkycConfigFetcher
+              workflowConfig={workflowConfig}
+              professionalQuestions={professionalQuestions}
+              personalQuestions={personalQuestions}
+            />
+          </div>
+        )
       )}
     </main>
   );
